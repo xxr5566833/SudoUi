@@ -4,6 +4,7 @@
 #include <regex>
 #include <iostream>
 #include <QTimer>
+#include <QFont>
 
 // #define Btn(x,y) pushButton_##x_##y
 
@@ -11,7 +12,13 @@ const std::string rstrColor("rgb(210, 210, 210)");
 const std::string none_rstrColor("white");
 const std::string focusColor("rgb(150, 150, 150)");
 const std::string relatedColor("rgb(200, 200, 200)");
+const std::regex bg("(background-color:).+?;\\n");
 
+const char *multiNumTemplete = "_ _ _\n_ _ _\n_ _ _";
+const int singleNumFontSize = 18;
+const int multiNumFontSize = 7;
+const QFont singleNumFont("Comic Sans MS", 18, QFont::Normal);
+const QFont multiNumFont("Comic sans MS", 7, QFont::Normal);
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -25,7 +32,12 @@ MainWindow::MainWindow(QWidget *parent) :
     solve_s = (SOLVE_S)GetProcAddress(coreDLL, "solve_s");
     // 为类变量申请空间
     originBoard = new int[81];
-    presentBoard = new int[81];
+    presentBoard = new bool*[81];
+    for(int i = 0; i < 81; i++){
+        presentBoard[i] = new bool[9];
+        for(int j = 0; j < 9; j++)
+            presentBoard[i][j] = false;
+    }
     // 不知道，一开始就有这一行
     ui->setupUi(this);
     // 将81个pushButton存到board数组中
@@ -49,9 +61,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // 开始计时
     timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(timerUpdate()));
     timer->setInterval(1000);
     timer->start();
+
+    // connect 连接
+    connect(timer, SIGNAL(timeout()), this, SLOT(timerUpdate()));
+    connect(ui->restart, SIGNAL(clicked()), this, SLOT(restart()));
+    connect(ui->pause, SIGNAL(clicked()), this, SLOT(pause()));
+    connect(ui->newGame, SIGNAL(clicked()), this, SLOT(newGame()));
+    for(int i = 0; i < 81; i++)
+        connect(board[i], SIGNAL(clicked()), this, SLOT(boardClicked()));
+    for(int i = 0; i < 9; i++)
+        connect(bottom[i], SIGNAL(clicked()), this, SLOT(bottomClicked()));
+    connect(ui->remindMe, SIGNAL(clicked()), this, SLOT(remindMe()));
+    connect(ui->erase, SIGNAL(clicked()), this, SLOT(erase()));
 }
 
 MainWindow::~MainWindow()
@@ -71,10 +94,10 @@ void MainWindow::initBoard(int mode, bool unique){
     else{
         generate_m(1, mode, &originBoard);
     }
-    std::regex bg("(background-color:).+?;\\n");
+
     for(int i = 0; i < 81; ++i){
-        presentBoard[i] = originBoard[i];
         QPushButton *pb = board[i];
+        pb->setFont(singleNumFont);
         std::string styleSheet = pb->styleSheet().toStdString();
         if(originBoard[i]){
             pb->setText(QString(originBoard[i] + '0'));
@@ -92,8 +115,6 @@ void MainWindow::restart(){}
 void MainWindow::pause(){}
 
 void MainWindow::newGame(){}
-
-void MainWindow::modeChoose(int index){}
 
 void MainWindow::boardClicked(){}
 

@@ -24,7 +24,7 @@ private:
     QPushButton *board[81];
     QPushButton *bottom[9];
     QTimer *timer;
-    int *presentBoard;
+    bool **presentBoard;
     int *originBoard;
     int focus;
     int costTime;
@@ -43,7 +43,6 @@ private slots:
     void restart();
     void pause();
     void newGame();
-    void modeChoose(int index);
     void boardClicked();
     void bottomClicked();
     void remindMe();
