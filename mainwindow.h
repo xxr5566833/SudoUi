@@ -34,7 +34,6 @@ private:
     QPushButton *pause_;
     QPushButton *restart_;
     QPushButton *help_;
-    QDialog *helpdialog_;
     QMessageBox *new_game_dialog_;
     QMessageBox *restart_dialog_;
     QTimer *timer_;

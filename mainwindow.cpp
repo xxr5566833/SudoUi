@@ -68,7 +68,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ispause_=false;
     restart_=ui->centralWidget->findChild<QPushButton*>("restart");
     restart_->setEnabled(false);
-    help_=ui->centralWidget->findChild<QPushButton*>("helpButton");
 
     //初始化 remindMe 按钮
     ui->remindMe->setEnabled(false);
@@ -549,8 +548,6 @@ void MainWindow::setBoard(){
 }
 void MainWindow::help()
 {
-    if(helpdialog_)
-        helpdialog_->reject();
     QDialog *dialog=new QDialog(this);
     QLabel *q=new QLabel();
     q->setFont(QFont("Comic Sans MS", 13, QFont::Normal));
@@ -562,9 +559,13 @@ void MainWindow::help()
                   "您可以暂停游戏然后继续\n"
                   "右下方可以选择模式，分为easy normal hard三个级别，唯一解或者多解\n"
                   "祝您游戏愉快，如果有什么意见可以联系我们"));
+    QPushButton *quit=new QPushButton();
+    quit->setText(tr("OK"));
     QGridLayout *layout=new QGridLayout(dialog);
     layout->addWidget(q,0,0);
-    helpdialog_=dialog;
+    quit->setMaximumSize(100,30);
+    layout->addWidget(quit,1,0);
+    connect(quit,SIGNAL(clicked()),dialog,SLOT(reject()));
     dialog->show();
 
 }
