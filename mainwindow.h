@@ -6,6 +6,8 @@
 #include "windows.h"
 #include "QMessageBox"
 #include "main.h"
+#include <QDialog>
+#include <QGridLayout>
 extern GENERATE_M generate_m;
 extern GENERATE_R generate_r;
 extern SOLVE_S solve_s;
@@ -31,6 +33,8 @@ private:
     QPushButton *erase_;
     QPushButton *pause_;
     QPushButton *restart_;
+    QPushButton *help_;
+    QDialog *helpdialog_;
     QMessageBox *new_game_dialog_;
     QMessageBox *restart_dialog_;
     QTimer *timer_;
@@ -57,6 +61,7 @@ private slots:
     void timerUpdate();
     void finish();
     void showRecord();
+    void help();
 };
 
 #endif // MAINWINDOW_H

@@ -134,6 +134,7 @@ public:
     QPushButton *newGame;
     QPushButton *submit;
     QPushButton *record;
+    QPushButton *helpButton;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
 
@@ -1147,6 +1148,9 @@ public:
         font7.setFamily(QStringLiteral("Comic Sans MS"));
         font7.setPointSize(12);
         record->setFont(font7);
+        helpButton = new QPushButton(centralWidget);
+        helpButton->setObjectName(QStringLiteral("helpButton"));
+        helpButton->setGeometry(QRect(0, 0, 81, 41));
         MainWindow->setCentralWidget(centralWidget);
         mainToolBar = new QToolBar(MainWindow);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
@@ -1278,6 +1282,7 @@ public:
         newGame->setText(QApplication::translate("MainWindow", "New Game", Q_NULLPTR));
         submit->setText(QApplication::translate("MainWindow", "Submit", Q_NULLPTR));
         record->setText(QApplication::translate("MainWindow", "Record", Q_NULLPTR));
+        helpButton->setText(QApplication::translate("MainWindow", "Help", Q_NULLPTR));
     } // retranslateUi
 
 };

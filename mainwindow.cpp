@@ -49,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
             sprintf(s, "pushButton_%d_%d", i + 1, j + 1);
             board_[x] = ui->centralWidget->findChild<QPushButton*>(s);
             board_[x]->setStyleSheet(board_[x]->styleSheet() + "background-color:white;\n");
+            board_[x]->setEnabled(false);
         }
     // 将9个tipButton存到bottom数组中
     for(int x = 0; x < 9; x++){
@@ -67,6 +68,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ispause_=false;
     restart_=ui->centralWidget->findChild<QPushButton*>("restart");
     restart_->setEnabled(false);
+    help_=ui->centralWidget->findChild<QPushButton*>("helpButton");
+
     //初始化 remindMe 按钮
     ui->remindMe->setEnabled(false);
 
@@ -91,6 +94,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->erase, SIGNAL(clicked()), this, SLOT(erase()));
     connect(ui->submit,SIGNAL(clicked()),this,SLOT(finish()));
     connect(ui->record, SIGNAL(clicked()), this, SLOT(showRecord()));
+    connect(ui->helpButton,SIGNAL(clicked()),this,SLOT(help()));
 
     // 如果没有record文件，则创建它
     std::ifstream fin("record");
@@ -103,6 +107,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     else
         fin.close();
+    //弹出操作窗口
 }
 
 MainWindow::~MainWindow()
@@ -148,6 +153,7 @@ void MainWindow::restart(){
     {
         for(int i = 0; i < 81; ++i){
             QPushButton *pb = board_[i];
+            pb->setEnabled(true);
             std::string styleSheet = pb->styleSheet().toStdString();
             if(originBoard[i]){
                 styleSheet = std::regex_replace(styleSheet, bg, "$1" + rstrColor + ";\n");
@@ -185,6 +191,7 @@ void MainWindow::pause(){
         }
         for(int i = 0; i < 81; ++i){
             QPushButton *pb = board_[i];
+            pb->setEnabled(false);
             std::string styleSheet = pb->styleSheet().toStdString();
             pb->setText(QString(""));
             styleSheet = std::regex_replace(styleSheet, bg, "$1" + none_rstrColor+ ";\n");
@@ -203,6 +210,7 @@ void MainWindow::pause(){
         timerEnable_=true;
         for(int i = 0; i < 81; ++i){
             QPushButton *pb = board_[i];
+            pb->setEnabled(true);
             std::string styleSheet = pb->styleSheet().toStdString();
             if(tempBoard_[i])
             {
@@ -230,7 +238,6 @@ void MainWindow::newGame(){
     reply = QMessageBox::question(new MainWindow(), tr("开始一局新游戏？"),
                                         "您选择了  "+mode+" 模式,确定要开始一局新的游戏？",
                                         QMessageBox::Ok | QMessageBox::Cancel );
-    std::fstream fs("log.txt",std::ios::out);
     switch(reply)
     {
     case QMessageBox::Ok:
@@ -243,21 +250,18 @@ void MainWindow::newGame(){
 
         presentGameMode = currentindex;
 
-        fs<<"获得用户所选模式，get！"<<std::endl;
         //2.根据模式调用对应的函数产生数组
         if(currentindex<3){
             int difficultyDivide[4] = {20, 32, 44, 56};
-            fs<<difficultyDivide[currentindex ]<<std::endl;
-             fs<< difficultyDivide[currentindex+1] - 1<<std::endl;
             generate_r(1, difficultyDivide[currentindex ], difficultyDivide[currentindex+1] - 1, true, &originBoard);
         }
         else{
             generate_m(1, (currentindex%3)+1, &originBoard);
         }
-        fs<<"初局生成，get！"<<std::endl;
         //3.根据数组元素初始化棋盘，区分不同的颜色
         for(int i = 0; i < 81; ++i){
             QPushButton *pb = board_[i];
+            pb->setEnabled(true);
             pb->setFont(singleNumFont);
             std::string styleSheet = pb->styleSheet().toStdString();
             if(originBoard[i]){
@@ -269,7 +273,6 @@ void MainWindow::newGame(){
             }
             pb->setStyleSheet(styleSheet.c_str());
         }
-        fs<<"颜色设置成功，get！"<<std::endl;
         //4.遍历整个bottombutton和erase按钮，先把它们都设置为false，pause也设置为enable
         for(int i=0;i<9;i++)
             bottom_[i]->setEnabled(false);
@@ -373,17 +376,17 @@ void MainWindow::bottomClicked(){
 
 void MainWindow::remindMe(){
     // 检查已经填上的数是否合法
-    int present[81] = {0};
+    int result[81] = {0};
     for(int i = 0; i < 81; i++){
         std::string num = board_[i]->text().toStdString();
         if(num != "")
-            present[i] = num[0] - '0';
+            result[i] = num[0] - '0';
     }
     for(int i = 0; i < 81; i++){
-        if(present[i]){
+        if(result[i]){
             // row
             for(int j = i / 9 * 9; j < (i / 9 + 1) * 9; j++)
-                if(i != j && present[i] == present[j]){
+                if(i != j && result[i] == result[j]){
                     std::string stylesheet = board_[i]->styleSheet().toStdString();
                     stylesheet = std::regex_replace(stylesheet, bg, "$1" + errorColor + ";\n");
                     board_[i]->setStyleSheet(stylesheet.c_str());
@@ -393,7 +396,7 @@ void MainWindow::remindMe(){
                     return;
                 }
             for(int j = i % 9; j < 81; j += 9)
-                if(i != j && present[i] == present[j]){
+                if(i != j && result[i] == result[j]){
                     std::string stylesheet = board_[i]->styleSheet().toStdString();
                     stylesheet = std::regex_replace(stylesheet, bg, "$1" + errorColor + ";\n");
                     board_[i]->setStyleSheet(stylesheet.c_str());
@@ -404,7 +407,7 @@ void MainWindow::remindMe(){
                 }
             for(int k = i / 9 / 3 * 3; k < (i / 9 / 3 + 1) * 3; k++)
                 for(int j = k * 9 + i % 9 / 3 * 3; j < k * 9 + (i % 9 / 3 + 1) * 3; j++)
-                    if(i != j && present[i] == present[j]){
+                    if(i != j && result[i] == result[j]){
                         std::string stylesheet = board_[i]->styleSheet().toStdString();
                         stylesheet = std::regex_replace(stylesheet, bg, "$1" + errorColor + ";\n");
                         board_[i]->setStyleSheet(stylesheet.c_str());
@@ -416,7 +419,7 @@ void MainWindow::remindMe(){
         }
     }
     int solution[81];
-    if(solve_s(present, solution))
+    if(solve_s(result, solution))
         board_[focus]->setText(QString(solution[focus] + '0'));
     else
         QMessageBox::StandardButton warning = QMessageBox::warning(new MainWindow(), tr("warning!"),
@@ -449,7 +452,7 @@ void MainWindow::finish(){
     for(int i=0;i<81;i++){
         if(board_[i]->text()==""){
             QMessageBox::StandardButton warning= QMessageBox::warning(new MainWindow(),tr("warning!"),
-                                                                     tr("您貌似还没填完？？"),
+                                                                     tr("貌似还没填完？？"),
                                                                      QMessageBox::Ok);
             std::string stylesheet =board_[i]->styleSheet().toStdString();
             stylesheet = std::regex_replace(stylesheet, bg, "$1" + errorColor + ";\n");
@@ -458,69 +461,55 @@ void MainWindow::finish(){
         }
         result[i]=board_[i]->text().toStdString()[0]-'0';
     }
-    for(int i=0;i<9;i++){
-        bool rowresult[9];
-        bool colresult[9];
-        bool gridresult[9];
-        for(int j=0;j<9;j++)
-        {
-            rowresult[j]=false;
-            colresult[j]=false;
-            gridresult[j]=false;
-        }
-        for(int j=0;j<9;j++)
-        {
-            int row=result[i*9+j];
-            int col=result[j*9+i];
-            int grid=result[((i/3)*3+(j/3))*9+((i%3)*3+j%3)];
-           // qDebug()<<row<<" "<<col << " " << grid << " ";
-            rowresult[row-1]=true;
-            colresult[col-1]=true;
-            gridresult[grid-1]=true;
-        }
-        for(int j=0;j<9;j++)
-        {
-            if(!(rowresult[j]&&colresult[j]&&gridresult[j]))
-            {
-                QMessageBox::StandardButton warning=QMessageBox::warning(new MainWindow(),tr("warning!"),
-                                                                         tr("貌似有错？？"),
-                                                                         QMessageBox::Ok);
-                if(!rowresult[j])
-                {
-                    for(int k=0;k<9;k++)
-                    {
-                        std::string stylesheet =board_[i*9+k]->styleSheet().toStdString();
-                        stylesheet = std::regex_replace(stylesheet, bg, "$1" + errorColor + ";\n");
-                        board_[i*9+k]->setStyleSheet(stylesheet.c_str());
-                    }
-                    return ;
+    for(int i = 0; i < 81; i++){
+        if(result[i]){
+            // row
+            for(int j = i / 9 * 9; j < (i / 9 + 1) * 9; j++)
+                if(i != j && result[i] == result[j]){
+                    QMessageBox::StandardButton warning=QMessageBox::warning(new MainWindow(),tr("warning!"),
+                                                                             tr("貌似有错？？"),
+                                                                             QMessageBox::Ok);
+                    std::string stylesheet = board_[i]->styleSheet().toStdString();
+                    stylesheet = std::regex_replace(stylesheet, bg, "$1" + errorColor + ";\n");
+                    board_[i]->setStyleSheet(stylesheet.c_str());
+                    stylesheet = board_[j]->styleSheet().toStdString();
+                    stylesheet = std::regex_replace(stylesheet, bg, "$1" + errorColor + ";\n");
+                    board_[j]->setStyleSheet(stylesheet.c_str());
+                    return;
                 }
-                if(!colresult[j])
-                {
-                    for(int k=0;k<9;k++)
-                    {
-                        std::string stylesheet =board_[k*9+i]->styleSheet().toStdString();
-                        stylesheet = std::regex_replace(stylesheet, bg, "$1" + errorColor + ";\n");
-                        board_[k*9+i]->setStyleSheet(stylesheet.c_str());
-                    }
-                    return ;
+            for(int j = i % 9; j < 81; j += 9)
+                if(i != j && result[i] == result[j]){
+                    QMessageBox::StandardButton warning=QMessageBox::warning(new MainWindow(),tr("warning!"),
+                                                                             tr("貌似有错？？"),
+                                                                             QMessageBox::Ok);
+                    std::string stylesheet = board_[i]->styleSheet().toStdString();
+                    stylesheet = std::regex_replace(stylesheet, bg, "$1" + errorColor + ";\n");
+                    board_[i]->setStyleSheet(stylesheet.c_str());
+                    stylesheet = board_[j]->styleSheet().toStdString();
+                    stylesheet = std::regex_replace(stylesheet, bg, "$1" + errorColor + ";\n");
+                    board_[j]->setStyleSheet(stylesheet.c_str());
+                    return;
                 }
-                if(!gridresult[j])
-                {
-                    for(int k=0;k<9;k++)
-                    {
-                        std::string stylesheet =board_[((i/3)*3+(k/3))*9+((i%3)*3+k%3)]->styleSheet().toStdString();
+            for(int k = i / 9 / 3 * 3; k < (i / 9 / 3 + 1) * 3; k++)
+                for(int j = k * 9 + i % 9 / 3 * 3; j < k * 9 + (i % 9 / 3 + 1) * 3; j++)
+                    if(i != j && result[i] == result[j]){
+                        QMessageBox::StandardButton warning=QMessageBox::warning(new MainWindow(),tr("warning!"),
+                                                                                 tr("貌似有错？？"),
+                                                                                 QMessageBox::Ok);
+                        std::string stylesheet = board_[i]->styleSheet().toStdString();
                         stylesheet = std::regex_replace(stylesheet, bg, "$1" + errorColor + ";\n");
-                        board_[((i/3)*3+(k/3))*9+((i%3)*3+k%3)]->setStyleSheet(stylesheet.c_str());
+                        board_[i]->setStyleSheet(stylesheet.c_str());
+                        stylesheet = board_[j]->styleSheet().toStdString();
+                        stylesheet = std::regex_replace(stylesheet, bg, "$1" + errorColor + ";\n");
+                        board_[j]->setStyleSheet(stylesheet.c_str());
+                        return;
                     }
-                    return ;
-                }
-            }
         }
     }
+
     timerEnable_=false;
     QMessageBox::StandardButton finished=QMessageBox::information(new MainWindow(),tr("填完了"),
-                                                             tr("牛逼牛逼！！完全正确，您的用时：..自己看吧"),
+                                                             tr("牛逼牛逼！！完全正确，您的用时：自己看吧"),
                                                              QMessageBox::Ok);
     std::ifstream recordin("record");
     int time[6];
@@ -557,6 +546,27 @@ void MainWindow::setBoard(){
         }
         pb->setStyleSheet(styleSheet.c_str());
     }
+}
+void MainWindow::help()
+{
+    if(helpdialog_)
+        helpdialog_->reject();
+    QDialog *dialog=new QDialog(this);
+    QLabel *q=new QLabel();
+    q->setFont(QFont("Comic Sans MS", 13, QFont::Normal));
+    q->setText(tr("sudoku version 0.0\n"
+                  "感谢您可以试玩我们的数独游戏!\n"
+                  "填/删数字是先选定要填的框，然后通过下面的10个按钮（1-9和erase）来填或者删除对应格子上的数字\n"
+                  "可以点击remind提醒您的错误或者帮您决定这里该填什么数字\n"
+                  "您填完后可以点submit，如果有错系统会提示您，如果都对了，系统会记录下您所用的时间\n"
+                  "您可以暂停游戏然后继续\n"
+                  "右下方可以选择模式，分为easy normal hard三个级别，唯一解或者多解\n"
+                  "祝您游戏愉快，如果有什么意见可以联系我们"));
+    QGridLayout *layout=new QGridLayout(dialog);
+    layout->addWidget(q,0,0);
+    helpdialog_=dialog;
+    dialog->show();
+
 }
 void MainWindow::showRecord(){
     std::ifstream recordFile("record");
