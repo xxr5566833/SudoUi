@@ -1,10 +1,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
+#include "QMainWindow"
 #include "ui_mainwindow.h"
-#include <windows.h>
-
+#include "windows.h"
+#include "QMessageBox"
+#include "main.h"
+extern GENERATE_M generate_m;
+extern GENERATE_R generate_r;
+extern SOLVE_S solve_s;
 namespace Ui {
 class MainWindow;
 }
@@ -21,23 +25,26 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    QPushButton *board[81];
-    QPushButton *bottom[9];
-    QTimer *timer;
+    QPushButton *board_[81];
+    QPushButton *bottom_[9];
+    QPushButton *submit_;
+    QPushButton *erase_;
+    QPushButton *pause_;
+    QPushButton *restart_;
+    QMessageBox *new_game_dialog_;
+    QMessageBox *restart_dialog_;
+    QTimer *timer_;
+    bool ispause_;
+    bool timerEnable_;
     bool **presentBoard;
     int *originBoard;
+    int *tempBoard_;
     int focus;
     int costTime;
-
-    typedef void(*GENERATE_M) (int, int, int**);
-    typedef void(*GENERATE_R) (int, int, int, bool, int**);
-    typedef bool(*SOLVE_S) (int *, int *);
-    HMODULE coreDLL;
-    GENERATE_M generate_m = NULL;
-    GENERATE_R generate_r = NULL;
-    SOLVE_S solve_s = NULL;
+    int presentGameMode;
 
     void initBoard(int mode, bool uniue);
+    void setBoard();
 
 private slots:
     void restart();
@@ -48,6 +55,8 @@ private slots:
     void remindMe();
     void erase();
     void timerUpdate();
+    void finish();
+    void showRecord();
 };
 
 #endif // MAINWINDOW_H

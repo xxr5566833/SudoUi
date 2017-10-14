@@ -132,6 +132,8 @@ public:
     QPushButton *pause;
     QComboBox *modeChooseBox;
     QPushButton *newGame;
+    QPushButton *submit;
+    QPushButton *record;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
 
@@ -1134,6 +1136,17 @@ public:
         newGame->setObjectName(QStringLiteral("newGame"));
         newGame->setGeometry(QRect(20, 120, 161, 51));
         newGame->setFont(font5);
+        submit = new QPushButton(centralWidget);
+        submit->setObjectName(QStringLiteral("submit"));
+        submit->setGeometry(QRect(650, 510, 161, 51));
+        submit->setFont(font5);
+        record = new QPushButton(centralWidget);
+        record->setObjectName(QStringLiteral("record"));
+        record->setGeometry(QRect(20, 580, 91, 51));
+        QFont font7;
+        font7.setFamily(QStringLiteral("Comic Sans MS"));
+        font7.setPointSize(12);
+        record->setFont(font7);
         MainWindow->setCentralWidget(centralWidget);
         mainToolBar = new QToolBar(MainWindow);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
@@ -1263,6 +1276,8 @@ public:
         );
         modeChooseBox->setCurrentText(QApplication::translate("MainWindow", "Easy     Unique Solution", Q_NULLPTR));
         newGame->setText(QApplication::translate("MainWindow", "New Game", Q_NULLPTR));
+        submit->setText(QApplication::translate("MainWindow", "Submit", Q_NULLPTR));
+        record->setText(QApplication::translate("MainWindow", "Record", Q_NULLPTR));
     } // retranslateUi
 
 };

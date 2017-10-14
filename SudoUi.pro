@@ -3,6 +3,8 @@
 # Project created by QtCreator 2017-10-05T17:10:24
 #
 #-------------------------------------------------
+QMAKE_CXXFLAGS_RELEASE = $$QMAKE_CFLAGS_RELEASE_WITH_DEBUGINFO
+QMAKE_LFLAGS_RELEASE =   $$QMAKE_LFLAGS_RELEASE_WITH_DEBUGINFO
 
 QT       += core gui
 
@@ -28,7 +30,8 @@ SOURCES += \
         mainwindow.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    main.h
 
 FORMS += \
         mainwindow.ui
